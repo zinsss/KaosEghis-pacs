@@ -100,8 +100,8 @@ class _TrayController:
             self._pystray.MenuItem(f'Status: {self._status}', lambda *_: None, enabled=False),
             self._pystray.MenuItem(f'Last poll: {self._last_poll_time}', lambda *_: None, enabled=False),
             self._pystray.MenuItem(f'Last POST result: {self._last_post_result}', lambda *_: None, enabled=False),
-            self._pystray.MenuItem(f\"Today's routed count: {self._todays_routed_count}\", lambda *_: None, enabled=False),
-            self._pystray.MenuItem('Open today\\'s history', self._open_history),
+            self._pystray.MenuItem(f'Last routed count: {self._todays_routed_count}', lambda *_: None, enabled=False),
+            self._pystray.MenuItem("Open today's history", self._open_history),
             self._pystray.MenuItem('Poll once now', self._poll_once),
             self._pystray.MenuItem(
                 'Dry-run mode',
@@ -121,8 +121,8 @@ class _TrayController:
     def _history_path(self) -> str:
         return _to_history_path(self._settings)
 
-    def _record_history(self, event_type: str, **fields: str) -> None:
-        history.append_event(self._history_path(), event_type, **fields)
+    def _record_history(self, history_path: str, event_type: str, **fields: str) -> None:
+        history.append_event(history_path, event_type, **fields)
 
     def _run_once(self) -> None:
         if not self._poll_lock.acquire(blocking=False):
@@ -137,14 +137,14 @@ class _TrayController:
             if result.get('posted_summary', '') == 'dry-run':
                 self._status = 'Dry-run'
             elif self._status != 'Error':
-            self._status = 'Running'
+                self._status = 'Running'
             self._last_poll_time = self._format_timestamp()
             self._last_post_result = result.get('posted_summary', '-')
-            self._todays_routed_count += int(result.get('rows_routed', 0))
+            self._todays_routed_count = int(result.get('rows_routed', 0))
         except Exception as exc:
             self._status = 'Error'
             self._last_post_result = f'poll_failed: {exc}'
-            self._record_history('poll_failed', status='failed', result='failed', reason=str(exc))
+            self._record_history(self._history_path(), 'poll_failed', status='failed', result='failed', reason=str(exc))
         finally:
             self._poll_lock.release()
             self._refresh_menu()

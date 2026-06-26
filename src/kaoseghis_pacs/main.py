@@ -77,7 +77,7 @@ def _emit_history_event(
     accession_no = ''
     order_code = ''
     if row:
-        source_key = f\"mwl:{row.get('mwl_key')}\" if row.get('mwl_key') is not None else ''
+        source_key = f"mwl:{row.get('mwl_key')}" if row.get('mwl_key') is not None else ''
         eghis_key = row.get('eghis_key') or ''
         patient_id = row.get('patient_id') or ''
         modality = (row.get('scheduled_modality') or '').strip()

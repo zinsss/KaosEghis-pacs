@@ -71,7 +71,7 @@ python -m kaoseghis_pacs test-post
   - Status (`Running`, `Dry-run`, `Error`)
   - Last poll time
   - Last POST result
-  - Today's routed count
+  - Last routed count
   - Open today's history
   - Poll once now
   - Toggle dry-run

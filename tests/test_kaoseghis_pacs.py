@@ -2,6 +2,7 @@ import os
 import sys
 from datetime import datetime
 
+import pytz
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -9,7 +10,7 @@ SRC = os.path.join(ROOT, 'src')
 if SRC not in sys.path:
     sys.path.insert(0, SRC)
 
-from kaoseghis_pacs import main, payload, routing
+from kaoseghis_pacs import main, payload, routing, sync_client
 
 
 def _join_rows_fixture():
@@ -367,7 +368,7 @@ def test_dry_run_does_not_post(monkeypatch, tmp_path):
 
     def fake_sender(*_args, **_kwargs):
         posted['called'] = True
-        return payload.SyncResult(ok=True, status_code=200, summary='should not be called')
+        return sync_client.SyncResult(ok=True, status_code=200, summary='should not be called')
 
     result = main.run_once(settings, fetcher=fake_fetcher, sender=fake_sender)
     assert result['posted'] is False
@@ -464,7 +465,7 @@ def test_payload_dedup_skips_unchanged_payload(tmp_path):
     existing_payload = payload.build_payload(route_rows, '2026-06-25T08:00:00+09:00')
     existing_hash = payload.payload_hash(existing_payload)
 
-    settings = make_settings(tmp_path, dry_run=False, state_content=f'{"payload_hash": "{existing_hash}"}')
+    settings = make_settings(tmp_path, dry_run=False, state_content=f'{{"payload_hash": "{existing_hash}"}}')
     def fake_fetcher(*_args, **_kwargs):
         return [
             {
@@ -495,7 +496,7 @@ def test_payload_dedup_skips_unchanged_payload(tmp_path):
         ]
 
     def fake_sender(*_args, **_kwargs):
-        return payload.SyncResult(ok=True, status_code=200, summary='called')
+        return sync_client.SyncResult(ok=True, status_code=200, summary='called')
 
     result = main.run_once(settings, fetcher=fake_fetcher, sender=fake_sender)
     assert result['posted'] is False

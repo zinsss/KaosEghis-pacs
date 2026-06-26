@@ -10,7 +10,7 @@ kaoseghis-pacs is a lightweight Windows-first Python agent that reads active ima
   - `BMD` (modality `BMD`, AE `BMD`)
   - `INNOVISION` (for DR, modality `CR`, AE `INNOVISION`)
 - Local state hash-based dedup (no repeated POST in unchanged cycles).
-- Runtime modes: `poll-once`, `poll-loop`, `test-post`, `tray`.
+- Runtime modes: `poll-once`, `poll-loop`, `test-post`, `tray`, `manual`.
 - Dedicated safe `dry-run` mode.
 
 ## Files
@@ -57,6 +57,16 @@ run-poll-loop.bat
 ```powershell
 run-tray.bat
 ```
+
+- Manual fallback mode (Windows-native form without DB access):
+
+```powershell
+run-manual.bat
+```
+
+- Manual mode is a fallback for environments where eGHIS DB access is unavailable.
+- Manual mode writes a local `manual_*` history event stream and posts to `KAOS_MWL_SYNC_URL` using the kaos-mwl sync schema.
+- It does not read or write eGHIS DB and does not require tray mode.
 
 - Send sample payload:
 

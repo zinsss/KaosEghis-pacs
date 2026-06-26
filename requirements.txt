@@ -1,1 +1,7 @@
-requests==2.32.3`r`npython-dotenv==1.0.1`r`npsycopg2-binary==2.9.10`r`npytz==2024.1`r`npytest==8.3.3
+requests==2.32.3
+python-dotenv==1.0.1
+psycopg2-binary==2.9.10
+pytz==2024.1
+pytest==8.3.3
+pystray==0.19.5; platform_system == "Windows"
+Pillow==10.4.0; platform_system == "Windows"

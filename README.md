@@ -10,7 +10,7 @@ kaoseghis-pacs is a lightweight Windows-first Python agent that reads active ima
   - `BMD` (modality `BMD`, AE `BMD`)
   - `INNOVISION` (for DR, modality `CR`, AE `INNOVISION`)
 - Local state hash-based dedup (no repeated POST in unchanged cycles).
-- Runtime modes: `poll-once`, `poll-loop`, `test-post`.
+- Runtime modes: `poll-once`, `poll-loop`, `test-post`, `tray`.
 - Dedicated safe `dry-run` mode.
 
 ## Files
@@ -21,6 +21,8 @@ kaoseghis-pacs is a lightweight Windows-first Python agent that reads active ima
 - `src/kaoseghis_pacs/payload.py` – payload builders and hashing
 - `src/kaoseghis_pacs/sync_client.py` – HTTP sync client
 - `src/kaoseghis_pacs/state.py` – local payload dedup state
+- `src/kaoseghis_pacs/history.py` – tray/event history JSONL writer
+- `src/kaoseghis_pacs/tray.py` – Windows system tray mode
 - `config/order_routing.example.json` – routing config
 - `requirements.txt`
 - `run-*.bat`
@@ -50,9 +52,55 @@ run-poll-once.bat
 run-poll-loop.bat
 ```
 
+- Windows tray mode (system tray UI + background polling):
+
+```powershell
+run-tray.bat
+```
+
 - Send sample payload:
 
 ```powershell
+python -m kaoseghis_pacs test-post
+```
+
+## Tray mode
+
+- Start with `run-tray.bat` or `python -m kaoseghis_pacs tray`.
+- Tray menu includes:
+  - Status (`Running`, `Dry-run`, `Error`)
+  - Last poll time
+  - Last POST result
+  - Last routed count
+  - Open today's history
+  - Poll once now
+  - Toggle dry-run
+  - Exit
+- Polling continues in background while tray menu remains available.
+
+## Today's history
+
+- History is written locally to:
+
+```text
+state/history-YYYYMMDD.jsonl
+```
+
+- Events are JSON lines and include:
+  - `poll_started`
+  - `poll_completed`
+  - `routed_item`
+  - `ignored_item`
+  - `sync_posted`
+  - `sync_failed`
+  - `no_change`
+- Each line includes event timestamp plus routing identifiers and status/result fields.
+
+## Run without tray
+
+```powershell
+python -m kaoseghis_pacs poll-once
+python -m kaoseghis_pacs poll-loop
 python -m kaoseghis_pacs test-post
 ```
 

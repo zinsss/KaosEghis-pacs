@@ -86,7 +86,9 @@ def build_payload(entries: List[Dict[str, Any]], generated_at: str) -> Dict[str,
 
 
 def payload_hash(payload_dict: Dict[str, Any]) -> str:
-    raw = json.dumps(payload_dict, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    payload_for_hash = dict(payload_dict)
+    payload_for_hash.pop('generated_at', None)
+    raw = json.dumps(payload_for_hash, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
     return hashlib.sha256(raw.encode('utf-8')).hexdigest()
 
 

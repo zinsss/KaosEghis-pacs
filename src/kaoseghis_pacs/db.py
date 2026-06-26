@@ -99,6 +99,7 @@ def fetch_active_worklist_rows(cfg: EGhisDbConfig, today_yyyymmdd: str) -> List[
         cursor_factory=RealDictCursor,
     ) as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SET statement_timeout = {int(cfg.query_timeout_ms)}")
+            cur.execute('SET default_transaction_read_only = on')
+            cur.execute('SET statement_timeout = %s', (int(cfg.query_timeout_ms),))
             cur.execute(query, (today_yyyymmdd, today_yyyymmdd))
             return [dict(r) for r in cur.fetchall()]

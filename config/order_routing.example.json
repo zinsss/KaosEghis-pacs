@@ -1,0 +1,15 @@
+{
+  "bmd_order_codes": ["HC342"],
+  "routes": {
+    "BMD": {
+      "modality": "BMD",
+      "station_aet": "BMD",
+      "description": "BMD"
+    },
+    "DR": {
+      "modality": "CR",
+      "station_aet": "INNOVISION",
+      "description": "X-RAY"
+    }
+  }
+}

@@ -120,3 +120,35 @@ def test_tray_run_once_routed_count_uses_last_poll_value(monkeypatch, tmp_path):
     assert controller._todays_routed_count == 2
     controller._run_once()
     assert controller._todays_routed_count == 2
+
+
+def test_load_or_generate_icon_uses_tray_icon_path(tmp_path, monkeypatch):
+    Image = pytest.importorskip('PIL.Image')
+    ImageDraw = pytest.importorskip('PIL.ImageDraw')
+    custom_icon = tmp_path / 'custom-icon.png'
+    Image.new('RGB', (16, 16), (255, 0, 0)).save(custom_icon)
+    monkeypatch.setenv('TRAY_ICON_PATH', str(custom_icon))
+    try:
+        icon = tray._load_or_generate_icon(Image, ImageDraw, status='Running')
+    finally:
+        monkeypatch.delenv('TRAY_ICON_PATH', raising=False)
+    assert isinstance(icon, Image.Image)
+    assert icon.size == (32, 32)
+    assert icon.getpixel((0, 0)) == (255, 0, 0)
+
+
+def test_load_or_generate_icon_falls_back_to_generated(monkeypatch):
+    Image = pytest.importorskip('PIL.Image')
+    ImageDraw = pytest.importorskip('PIL.ImageDraw')
+    monkeypatch.delenv('TRAY_ICON_PATH', raising=False)
+    called = False
+
+    def _fake_generate(_Image, _ImageDraw, status):
+        nonlocal called
+        called = True
+        return 'generated-icon'
+
+    monkeypatch.setattr(tray, '_generate_k_icon', _fake_generate)
+    icon = tray._load_or_generate_icon(Image, ImageDraw, status='Running')
+    assert called
+    assert icon == 'generated-icon'

@@ -29,6 +29,47 @@ def _resolve_tray_dependencies():
         return None, None, None
 
 
+def _load_or_generate_icon(Image, ImageDraw, status: str = 'Running'):
+    icon_path = os.getenv('TRAY_ICON_PATH', '').strip()
+    if icon_path and Path(icon_path).is_file():
+        try:
+            image = Image.open(icon_path)
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            return image.resize((32, 32), Image.Resampling.LANCZOS)
+        except Exception:
+            return _generate_k_icon(Image, ImageDraw, status)
+
+    return _generate_k_icon(Image, ImageDraw, status)
+
+
+def _generate_k_icon(Image, ImageDraw, status: str = 'Running'):
+    size = 32
+    if status == 'Error':
+        fill = (196, 0, 0)
+    elif status == 'Dry-run':
+        fill = (255, 165, 0)
+    else:
+        fill = (0, 128, 0)
+    image = Image.new('RGB', (size, size), 'white')
+    draw = ImageDraw.Draw(image)
+    draw.ellipse((4, 4, size - 4, size - 4), fill=fill, outline='black')
+    # Simple centered uppercase K.
+    try:
+        from PIL import ImageFont
+        font = ImageFont.load_default()
+    except Exception:
+        font = None
+    text = 'K'
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = text_bbox[2] - text_bbox[0]
+    text_h = text_bbox[3] - text_bbox[1]
+    text_x = (size - text_w) // 2
+    text_y = (size - text_h) // 2 - 1
+    draw.text((text_x, text_y), text, fill='white', font=font)
+    return image
+
+
 def start_tray(settings: 'RunSettings') -> None:
     if not _is_windows_platform():
         raise RuntimeError('tray mode is Windows-only')
@@ -81,16 +122,7 @@ class _TrayController:
             self._poll_thread.join(timeout=5)
 
     def _build_icon_image(self):
-        if self._status == 'Error':
-            fill = (196, 0, 0)
-        elif self._status == 'Dry-run':
-            fill = (255, 165, 0)
-        else:
-            fill = (0, 128, 0)
-        image = self._Image.new('RGB', (32, 32), 'white')
-        draw = self._ImageDraw.Draw(image)
-        draw.ellipse((4, 4, 28, 28), fill=fill, outline='black')
-        return image
+        return _load_or_generate_icon(self._Image, self._ImageDraw, self._status)
 
     def _format_timestamp(self) -> str:
         return datetime.now(pytz.timezone(self._settings.timezone)).strftime('%Y-%m-%d %H:%M:%S')

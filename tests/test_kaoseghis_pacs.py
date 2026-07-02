@@ -304,7 +304,6 @@ def test_payload_generation_shape_for_kaos_mwl():
     entry = payload_obj['entries'][0]
     assert set(entry.keys()) == {
         'source_key',
-        'eghis_key',
         'patient_id',
         'patient_name',
         'patient_birth_date',
@@ -320,9 +319,17 @@ def test_payload_generation_shape_for_kaos_mwl():
         'route',
     }
     assert entry['source_key'] == 'mwl:5'
+    assert entry['patient_id'] == '7435'
+    assert entry['patient_name'] == '홍길동'
+    assert entry['patient_birth_date'] == '19830210'
+    assert entry['patient_sex'] == 'M'
     assert entry['modality'] == 'BMD'
     assert entry['station_aet'] == 'BMD'
     assert entry['route'] == 'BMD'
+    assert entry['scheduled_date'] == '20260625'
+    assert entry['scheduled_time'] == '080000'
+    assert entry['scheduled_procedure_step_description'] == 'BMD'
+    assert entry['requested_procedure_description'] == 'BMD'
 
 
 def test_payload_hash_dedup():
@@ -346,8 +353,8 @@ def test_utf8_korean_patient_name_preservation():
         'accession_no': 'K-6',
         'ord_cd': 'HC342',
         'route_name': 'BMD',
-        'scheduled_proc_desc': 'BMD',
-        'requested_proc_desc': 'BMD',
+        'scheduled_proc_desc': '흉부 X선',
+        'requested_proc_desc': '흉부 X선',
     }
     entries = payload.build_payload_entries(
         [row],
@@ -355,6 +362,8 @@ def test_utf8_korean_patient_name_preservation():
         'Asia/Seoul',
     )
     assert entries[0]['patient_name'] == '김나영'
+    assert entries[0]['scheduled_procedure_step_description'] == '흉부 X선'
+    assert entries[0]['requested_procedure_description'] == '흉부 X선'
     serialized = payload.payload_hash(payload.build_payload(entries, '2026-06-25T08:30:00+09:00'))
     assert isinstance(serialized, str)
 

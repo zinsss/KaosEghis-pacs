@@ -42,10 +42,13 @@ def _parse_datetime_from_raw(raw: str) -> datetime | None:
 
 def scheduled_date_time(row: Dict[str, Any], timezone: str, default_dt: datetime) -> tuple[str, str]:
     dt_raw = pick_anchor_datetime(row)
-    parsed = _parse_datetime_from_raw(dt_raw)
-    tz = pytz.timezone(timezone)
-    dt = tz.localize(parsed) if parsed else default_dt
-    return dt.strftime('%Y%m%d'), dt.strftime('%H%M%S')
+    raw_digits = ''.join(ch for ch in str(dt_raw) if ch.isdigit())
+    if len(raw_digits) >= 14:
+        date = raw_digits[:8]
+        time = raw_digits[8:14]
+        if len(time) == 6:
+            return date, time
+    return default_dt.strftime('%Y%m%d'), default_dt.strftime('%H%M%S')
 
 
 def build_payload_entries(rows: List[Dict[str, Any]], routes: Dict[str, Dict[str, str]], timezone: str) -> List[Dict[str, Any]]:
@@ -59,7 +62,6 @@ def build_payload_entries(rows: List[Dict[str, Any]], routes: Dict[str, Dict[str
         scheduled_date, scheduled_time = scheduled_date_time(row, timezone, now)
         out.append({
             'source_key': f"mwl:{row['mwl_key']}",
-            'eghis_key': row['eghis_key'],
             'patient_id': row['patient_id'],
             'patient_name': row['patient_name'],
             'patient_birth_date': row['patient_birth_date'],
@@ -67,8 +69,8 @@ def build_payload_entries(rows: List[Dict[str, Any]], routes: Dict[str, Dict[str
             'accession_no': normalize_accession_no(row),
             'modality': route['modality'],
             'station_aet': route['station_aet'],
-            'scheduled_procedure_step_description': route['description'],
-            'requested_procedure_description': row.get('scheduled_proc_desc') or row.get('requested_proc_desc') or route['description'],
+            'scheduled_procedure_step_description': row.get('scheduled_proc_desc') or route['description'],
+            'requested_procedure_description': row.get('requested_proc_desc') or route['description'],
             'scheduled_date': scheduled_date,
             'scheduled_time': scheduled_time,
             'order_code': row['ord_cd'],
@@ -100,7 +102,6 @@ def sample_payload(timezone: str = 'Asia/Seoul') -> Dict[str, Any]:
         'entries': [
             {
                 'source_key': 'mwl:5',
-                'eghis_key': '261864_1_0',
                 'patient_id': '7435',
                 'patient_name': '홍길동',
                 'patient_birth_date': '19830210',

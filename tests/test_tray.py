@@ -44,6 +44,12 @@ def test_parser_accepts_tray_mode():
     assert args.mode == 'tray'
 
 
+def test_parser_accepts_manual_mode():
+    parser = main.build_parser()
+    args = parser.parse_args(['manual'])
+    assert args.mode == 'manual'
+
+
 def test_tray_module_imports_without_syntax_error():
     importlib.import_module('kaoseghis_pacs.tray')
 

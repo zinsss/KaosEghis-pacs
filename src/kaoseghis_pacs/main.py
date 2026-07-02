@@ -339,7 +339,7 @@ def _load_routes(path: str):
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description='kaoseghis-pacs agent')
-    p.add_argument('mode', choices=['poll-once', 'poll-loop', 'test-post', 'tray'])
+    p.add_argument('mode', choices=['poll-once', 'poll-loop', 'test-post', 'tray', 'manual'])
     p.add_argument('--dry-run', action='store_true')
     p.add_argument('--eghis-db-host', dest='eghis_db_host', default='')
     p.add_argument('--eghis-db-port', dest='eghis_db_port', default='')
@@ -373,6 +373,9 @@ def main():
     elif args.mode == 'tray':
         from . import tray
         tray.start_tray(cfg)
+    elif args.mode == 'manual':
+        from . import manual
+        manual.start_manual(cfg)
 
 
 if __name__ == '__main__':
